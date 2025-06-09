@@ -36,22 +36,35 @@ class Program
             Console.WriteLine($"Productos existentes en WooCommerce: {productosWoo.Count}");
 
             int actualizados = 0, creados = 0;
+
             foreach (var producto in productos)
             {
-                var existente = productosWoo.FirstOrDefault(p => (string?)p?.sku == producto.CodigoBarra);
-
-
-                if (existente != null)
+                try
                 {
-                    await woo.ActualizarProducto((int)existente.id, producto);
-                    actualizados++;
+                    var existente = productosWoo.FirstOrDefault(p =>
+                        ((string?)p?.sku)?.Trim() == producto.CodigoBarra.Trim());
+
+                    if (existente != null)
+                    {
+                        Console.WriteLine($"🔄 Actualizando producto SKU: {producto.CodigoBarra}");
+                        await woo.ActualizarProducto((int)existente.id, producto);
+                        actualizados++;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"🆕 Creando producto SKU: {producto.CodigoBarra}");
+                        await woo.CrearProducto(producto);
+                        creados++;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await woo.CrearProducto(producto);
-                    creados++;
+                    Console.WriteLine($"⚠️ Error al procesar producto SKU: {producto.CodigoBarra} → {ex.Message}");
                 }
             }
+
+            Console.WriteLine($"✅ Sincronización completada. Productos actualizados: {actualizados}, creados: {creados}");
+
 
             stopwatch.Stop();
             Console.WriteLine("Sincronización completada.");

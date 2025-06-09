@@ -1,4 +1,4 @@
-SELECT r.rub_nom AS Categoria, ISNULL(s.Descripcion, '') AS SubCategoria, 
+SELECT ISNULL(r.CategoriaWeb,'') AS Categoria, ISNULL(s.Descripcion, '') AS SubCategoria, 
        a.art_codbar AS CodigoBarra, a.art_des AS Descripcion, 
        P.pda_mon AS PrecioFinal, a.art_obs AS Observaciones
 FROM ARTICULOS AS a

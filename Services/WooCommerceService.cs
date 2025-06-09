@@ -27,59 +27,98 @@ public class WooCommerceService
 
     public async Task<List<dynamic>> ObtenerTodosLosProductos()
     {
-        var response = await _httpClient.GetAsync($"{_baseUrl}products?per_page=100");
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
-        return JsonConvert.DeserializeObject<List<dynamic>>(json) ?? new List<dynamic>();
+        var todos = new List<dynamic>();
+        int page = 1;
+        const int pageSize = 100;
 
+        while (true)
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}products?per_page={pageSize}&page={page}");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            var pagina = JsonConvert.DeserializeObject<List<dynamic>>(json);
 
+            if (pagina == null || pagina.Count == 0)
+                break;
+
+            todos.AddRange(pagina);
+            Console.WriteLine($"Productos traídos página {page}: {pagina.Count}");
+
+            if (pagina.Count < pageSize)
+                break; // última página
+
+            page++;
+        }
+
+        Console.WriteLine($"Total productos existentes en WooCommerce: {todos.Count}");
+        return todos;
     }
+
 
     public async Task CrearProducto(Producto p)
     {
-        var nuevo = new
+        try
         {
-            name = p.Descripcion,
-            type = "simple",
-            regular_price = p.PrecioFinal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
-            sku = p.CodigoBarra,
-            categories = new[] {
-            new { name = p.Categoria },
-            new { name = p.SubCategoria }
-        },
-            description = p.Observaciones
-        };
+            var nuevo = new
+            {
+                name = p.Descripcion,
+                type = "simple",
+                regular_price = p.PrecioFinal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                sku = p.CodigoBarra,
+                categories = new[] {
+                new { name = p.Categoria },
+                new { name = p.SubCategoria }
+            }.Where(c => !string.IsNullOrWhiteSpace(c.name)).ToArray(),
+                description = p.Observaciones
+            };
 
-        var jsonString = JsonConvert.SerializeObject(nuevo);
-        Console.WriteLine($"Enviando producto: {p.Descripcion} | SKU: {p.CodigoBarra}");
-        Console.WriteLine(jsonString);
+            var jsonString = JsonConvert.SerializeObject(nuevo);
+            Console.WriteLine($"🆕 Enviando producto: {p.Descripcion} | SKU: {p.CodigoBarra}");
+            Console.WriteLine(jsonString);
 
-        var json = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var json = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var res = await _httpClient.PostAsync($"{_baseUrl}products", json);
 
-        var res = await _httpClient.PostAsync($"{_baseUrl}products", json);
-
-        if (!res.IsSuccessStatusCode)
-        {
-            var errorContent = await res.Content.ReadAsStringAsync();
-            Console.WriteLine($"⚠️ Error al crear producto: {res.StatusCode}");
-            Console.WriteLine($"Respuesta del servidor: {errorContent}");
+            if (!res.IsSuccessStatusCode)
+            {
+                var errorContent = await res.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Error al crear producto [{p.CodigoBarra}]: {res.StatusCode}");
+                Console.WriteLine($"🪵 Respuesta del servidor: {errorContent}");
+            }
         }
-
-        res.EnsureSuccessStatusCode(); // esto sigue lanzando si hay error
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🚨 Excepción al crear producto [{p.CodigoBarra}]: {ex.Message}");
+        }
     }
-
-
     public async Task ActualizarProducto(int id, Producto p)
     {
-        var update = new
+        try
         {
-            name = p.Descripcion,
-            regular_price = p.PrecioFinal.ToString("0.00"),
-            description = p.Observaciones
-        };
+            var update = new
+            {
+                name = p.Descripcion,
+                regular_price = p.PrecioFinal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                description = p.Observaciones
+            };
 
-        var json = new StringContent(JsonConvert.SerializeObject(update), Encoding.UTF8, "application/json");
-        var res = await _httpClient.PutAsync($"{_baseUrl}products/{id}", json);
-        res.EnsureSuccessStatusCode();
+            var json = new StringContent(JsonConvert.SerializeObject(update), Encoding.UTF8, "application/json");
+            var res = await _httpClient.PutAsync($"{_baseUrl}products/{id}", json);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                var errorContent = await res.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Error al actualizar producto [{p.CodigoBarra}] (ID {id}): {res.StatusCode}");
+                Console.WriteLine($"🪵 Respuesta del servidor: {errorContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🚨 Excepción al actualizar producto [{p.CodigoBarra}] (ID {id}): {ex.Message}");
+        }
     }
+
+
+
+
 }
