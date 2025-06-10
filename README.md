@@ -76,13 +76,15 @@ Requiere [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) o 
 ## 🧠 ¿Problemas o mejoras?
 
 Podés continuar la conversación técnica directamente en este chat de ChatGPT:  
-👉 [Volver al hilo del proyecto](https://chat.openai.com/share/5ca6df2a-5b67-4bfe-a70a-4dd6d389e06e)
+👉 [Volver al hilo del proyecto](https://chatgpt.com/c/683b6726-1d64-8003-890e-bad335bd406c)
 
 ---
 
 ## 📌 Nota
 
-Si la API de WooCommerce devuelve solo un producto cuando hay más disponibles, revisá que estés usando paginación correcta (`?per_page=100&page=1,2,3...`) y que no haya restricciones en la tienda (por ejemplo, productos ocultos, borradores, o sin visibilidad en la API).
+Si la API de WooCommerce devuelve solo un producto cuando hay más disponibles, 
+Revisá que estés usando paginación correcta (`?per_page=100&page=1,2,3...`) y que no haya restricciones en la tienda (por ejemplo, productos ocultos, borradores, o sin visibilidad en la API)
+Asegurate que no existan productos en borrado lógico (papelera de reciclaje de WooCommerce) .
 
 ---
 
