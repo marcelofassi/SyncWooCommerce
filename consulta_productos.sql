@@ -1,6 +1,6 @@
 SELECT ISNULL(r.CategoriaWeb,'') AS Categoria, ISNULL(s.Descripcion, '') AS SubCategoria, 
        a.art_codbar AS CodigoBarra, a.art_des AS Descripcion, 
-       P.pda_mon AS PrecioFinal, a.art_obs AS Observaciones
+       P.pda_mon AS PrecioFinal, a.art_obs AS Observaciones, 23 as CategoriaId, 0 as SubCategoriaId
 FROM ARTICULOS AS a
 INNER JOIN RUBROS AS r ON a.rub_idesec = r.rub_idesec
 LEFT JOIN SUBRUBROS AS s ON s.IdSubRubro = a.IdSubRubro

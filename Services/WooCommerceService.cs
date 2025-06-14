@@ -58,16 +58,21 @@ public class WooCommerceService
     {
         try
         {
+            var categorias = new List<object>();
+
+            if (p.CategoriaId.HasValue)
+                categorias.Add(new { id = p.CategoriaId.Value });
+
+            if (p.SubCategoriaId.HasValue)
+                categorias.Add(new { id = p.SubCategoriaId.Value });
+
             var nuevo = new Dictionary<string, object?>
             {
                 ["name"] = p.Descripcion,
                 ["type"] = "simple",
                 ["regular_price"] = p.PrecioFinal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
                 ["sku"] = p.CodigoBarra,
-                ["categories"] = new[] {
-                    new { name = p.Categoria },
-                    new { name = p.SubCategoria }
-                }.Where(c => !string.IsNullOrWhiteSpace(c.name)).ToArray(),
+                ["categories"] = categorias,
                 ["description"] = p.Observaciones
             };
 
@@ -101,24 +106,21 @@ public class WooCommerceService
     {
         try
         {
+            var categorias = new List<object>();
+
+            if (p.CategoriaId.HasValue)
+                categorias.Add(new { id = p.CategoriaId.Value });
+
+            if (p.SubCategoriaId.HasValue)
+                categorias.Add(new { id = p.SubCategoriaId.Value });
+
             var update = new Dictionary<string, object?>
             {
                 ["name"] = p.Descripcion,
                 ["regular_price"] = p.PrecioFinal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
-                ["description"] = p.Observaciones
+                ["description"] = p.Observaciones,
+                ["categories"] = categorias
             };
-
-            // Verifica si tiene imagen, si no, agrega una desde Google
-            var tieneImagen = await TieneImagen(id);
-            if (!tieneImagen)
-            {
-                var imageUrl = await _googleImageService.BuscarImagenPorSkuAsync(p.CodigoBarra ?? string.Empty);
-                if (!string.IsNullOrWhiteSpace(imageUrl))
-                {
-                    update["images"] = new[] { new { src = imageUrl } };
-                    Console.WriteLine($"🖼 Imagen añadida automáticamente desde Google para SKU {p.CodigoBarra}");
-                }
-            }
 
             var json = new StringContent(JsonConvert.SerializeObject(update), Encoding.UTF8, "application/json");
             var res = await _httpClient.PutAsync($"{_baseUrl}products/{id}", json);
@@ -135,22 +137,4 @@ public class WooCommerceService
             Console.WriteLine($"🚨 Excepción al actualizar producto [{p.CodigoBarra}] (ID {id}): {ex.Message}");
         }
     }
-
-    private async Task<bool> TieneImagen(int productId)
-    {
-        try
-        {
-            var res = await _httpClient.GetAsync($"{_baseUrl}products/{productId}");
-            res.EnsureSuccessStatusCode();
-            var json = await res.Content.ReadAsStringAsync();
-            var data = JsonConvert.DeserializeObject<dynamic>(json);
-            var images = data?.images;
-            return images != null && images.Count > 0;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 }
-
