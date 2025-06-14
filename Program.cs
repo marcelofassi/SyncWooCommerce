@@ -21,6 +21,7 @@ class Program
                 .AddSingleton<IConfiguration>(builder)
                 .AddSingleton<SqlService>()
                 .AddSingleton<WooCommerceService>()
+                .AddSingleton<GoogleImageService>()
                 .BuildServiceProvider();
 
             Console.WriteLine("Inicializando servicios...");
@@ -42,7 +43,7 @@ class Program
                 try
                 {
                     var existente = productosWoo.FirstOrDefault(p =>
-                        ((string?)p?.sku)?.Trim() == producto.CodigoBarra.Trim());
+                            ((string?)p?.sku)?.Trim() == producto.CodigoBarra?.Trim());
 
                     if (existente != null)
                     {
