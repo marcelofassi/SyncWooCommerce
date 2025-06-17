@@ -7,6 +7,13 @@ using System;
 
 class Program
 {
+    private readonly GoogleImageService _googleImageServiceTest;
+
+    public Program(GoogleImageService googleImageServiceTest)
+    {
+        _googleImageServiceTest = googleImageServiceTest;
+    }
+
     static async Task Main(string[] args)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -23,6 +30,21 @@ class Program
                 .AddSingleton<WooCommerceService>()
                 .AddSingleton<GoogleImageService>()
                 .BuildServiceProvider();
+
+            //------------------------------------------------------------------------------------------------------------
+            //Test GoogleImageService para verificar funcionamiento sin ingresar al bucle de sincronización
+            var googleImageService = services.GetRequiredService<GoogleImageService>();
+            var programInstance = new Program(googleImageService);
+            var r = programInstance._googleImageServiceTest.BuscarImagenPorSkuAsync("7790368029647").GetAwaiter().GetResult();
+            if (r != null)
+            {
+                Console.WriteLine($"Imagen de test encontrada: {r}");
+            }
+            else
+            {
+                Console.WriteLine("No se encontró imagen de test para el SKU proporcionado.");
+            }
+            //Fin Test GoogleImageService-----------------------------------------------------------------------------------
 
             Console.WriteLine("Inicializando servicios...");
             var db = services.GetRequiredService<SqlService>();
@@ -65,7 +87,6 @@ class Program
             }
 
             Console.WriteLine($"✅ Sincronización completada. Productos actualizados: {actualizados}, creados: {creados}");
-
 
             stopwatch.Stop();
             Console.WriteLine("Sincronización completada.");

@@ -101,7 +101,6 @@ public class WooCommerceService
             Console.WriteLine($"🚨 Excepción al crear producto [{p.CodigoBarra}]: {ex.Message}");
         }
     }
-
     public async Task ActualizarProducto(int id, Producto p)
     {
         try
@@ -122,6 +121,23 @@ public class WooCommerceService
                 ["categories"] = categorias
             };
 
+            // Verificar si el producto actual tiene imágenes
+            var productoExistenteResp = await _httpClient.GetAsync($"{_baseUrl}products/{id}");
+            productoExistenteResp.EnsureSuccessStatusCode();
+            var productoExistenteJson = await productoExistenteResp.Content.ReadAsStringAsync();
+            dynamic productoExistente = JsonConvert.DeserializeObject<dynamic>(productoExistenteJson);
+
+            bool tieneImagenes = productoExistente?.images != null && productoExistente.images.Count > 0;
+
+            if (!tieneImagenes)
+            {
+                var imageUrl = await _googleImageService.BuscarImagenPorSkuAsync(p.CodigoBarra ?? string.Empty);
+                if (!string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    update["images"] = new[] { new { src = imageUrl } };
+                }
+            }
+
             var json = new StringContent(JsonConvert.SerializeObject(update), Encoding.UTF8, "application/json");
             var res = await _httpClient.PutAsync($"{_baseUrl}products/{id}", json);
 
@@ -137,4 +153,5 @@ public class WooCommerceService
             Console.WriteLine($"🚨 Excepción al actualizar producto [{p.CodigoBarra}] (ID {id}): {ex.Message}");
         }
     }
+
 }
