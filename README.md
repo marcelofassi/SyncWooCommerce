@@ -1,93 +1,61 @@
-# 🛒 SyncWooCommerce
 
-Aplicación desarrollada en **C# .NET Core** que sincroniza productos desde una base de datos SQL Server con una tienda **WooCommerce**.  
-Lee los productos usando una consulta SQL personalizada, y los compara con los existentes en WooCommerce vía API. Si el producto existe, lo actualiza; si no, lo crea.
+# SyncWooCommerce
 
----
+Aplicación en .NET Core que sincroniza productos desde una base de datos SQL Server hacia una tienda WooCommerce. Crea o actualiza productos según su código de barras (SKU).
 
-## 🚀 Características
+## Funcionalidades
 
-- Conexión a SQL Server mediante configuración externa
-- Consulta SQL editable desde archivo externo
-- Comparación por SKU (código de barras)
-- Creación o actualización de productos vía API REST de WooCommerce
-- Manejo robusto de errores y logs de progreso en consola
-- Modularizado en servicios (`SqlService`, `WooCommerceService`, `GoogleImageService`, etc.)
+- Lectura de productos desde SQL Server con script configurable.
+- Conexión a la API de WooCommerce para creación y actualización de productos.
+- Búsqueda automática de imágenes usando Google Custom Search.
+- Logueo detallado por consola (productos leídos, creados, errores, tiempos).
 
----
+## Requisitos
 
-## ⚙️ Configuración
+- .NET Core 8.0
+- Acceso a una base SQL Server
+- WooCommerce con API habilitada (Consumer Key / Secret)
+- Cuenta en Google Cloud para búsquedas de imágenes
 
-Editar el archivo `appsettings.json`:
+## Configuración
+
+Editar `appsettings.json` con los siguientes parámetros:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=MI_SERVIDOR;Database=MI_BASE;User Id=USUARIO;Password=CLAVE;"
+    "SqlServer": "Server=TU_SERVIDOR;Database=TU_BASE;User Id=USUARIO;Password=CLAVE;TrustServerCertificate=True;"
   },
   "WooCommerce": {
-    "BaseUrl": "https://mitienda.com/wp-json/wc/v3/",
-    "ConsumerKey": "ck_XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "ConsumerSecret": "cs_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    "BaseUrl": "https://tusitio.com/wp-json/wc/v3/",
+    "ConsumerKey": "tu_consumer_key",
+    "ConsumerSecret": "tu_consumer_secret"
   },
-  "ConsultaSqlPath": "consulta.sql",
-  "TdpIdesec": 1
+  "GoogleSearch": {
+    "ApiKey": "TU_API_KEY",
+    "SearchEngineId": "TU_SEARCH_ENGINE_ID"
+  },
+  "Parametros": {
+    "TdpIdesec": 1
+  }
 }
 ```
 
-- Asegurarse de que `consulta.sql` esté presente en la raíz del proyecto o especificar la ruta completa.
+## Cómo obtener la API Key y SearchEngineId de Google
+
+1. Ingresar a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crear un nuevo proyecto (o usar uno existente)
+3. Habilitar la **Custom Search API**
+4. Ir a `APIs y Servicios > Credenciales` y crear una nueva **clave de API**
+5. Ir a [Google Programmable Search Engine](https://programmablesearchengine.google.com/)
+6. Crear un motor de búsqueda con el sitio `www.google.com`
+7. Activar la búsqueda de imágenes
+8. Copiar el **Search Engine ID (cx)** generado
+
+## Enlace para continuar esta conversación en ChatGPT
+
+[Acceder al historial de este proyecto en ChatGPT](https://chat.openai.com/share)
 
 ---
 
-## ▶️ Ejecución
-
-```bash
-dotnet build
-dotnet run
-```
-
-Requiere [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) o superior.
-
----
-
-## 📦 Dependencias
-
-- `Microsoft.Data.SqlClient`
-- `Newtonsoft.Json`
-- `Microsoft.Extensions.Configuration`
-
----
-
-## 📄 Estructura del Proyecto
-
-```
-/SyncWooCommerce
-├── Program.cs
-├── appsettings.json
-├── SqlService.cs
-├── WooCommerceService.cs
-├── GoogleImageService.cs
-├── consulta.sql
-└── README.md
-```
-
----
-
-## 🧠 ¿Problemas o mejoras?
-
-Podés continuar la conversación técnica directamente en este chat de ChatGPT:  
-👉 [Volver al hilo del proyecto](https://chatgpt.com/c/683b6726-1d64-8003-890e-bad335bd406c)
-
----
-
-## 📌 Nota
-
-Si la API de WooCommerce devuelve solo un producto cuando hay más disponibles, 
-Revisá que estés usando paginación correcta (`?per_page=100&page=1,2,3...`) y que no haya restricciones en la tienda (por ejemplo, productos ocultos, borradores, o sin visibilidad en la API)
-Asegurate que no existan productos en borrado lógico (papelera de reciclaje de WooCommerce) .
-
----
-
-## 📬 Contacto
-
-Creado por Marcelo Fassi • Proyecto privado para sincronización de ecommerce con WooCommerce.
+Para cualquier mejora, abrir un issue o contactar al desarrollador.
